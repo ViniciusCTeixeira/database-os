@@ -4,7 +4,13 @@ Serviços de dados compartilhados pelo servidor, separados por ambiente. Desenvo
 
 ## Desenvolvimento local
 
-Os arquivos de desenvolvimento ficam em `dev/`. Para ajustar as credenciais locais, copie o exemplo antes de subir a pilha:
+Os arquivos de desenvolvimento ficam em `dev/`. Crie a rede compartilhada uma única vez na máquina:
+
+```sh
+docker network create system-os
+```
+
+Para ajustar as credenciais locais, copie o exemplo antes de subir a pilha:
 
 ```sh
 cp dev/.env.example dev/.env
