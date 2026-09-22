@@ -1,13 +1,34 @@
+name: databases-os
+
 services:
   redis-os:
     build:
       context: .
       dockerfile: docker/redis/Dockerfile
     image: databases-os-redis:7.4.11
+    container_name: redis-os
+    hostname: redis-os
+    restart: unless-stopped
+
     ports:
       - "127.0.0.1:6379:6379"
+
+    volumes:
+      - redis-os-data:/data
+
+    command:
+      - redis-server
+      - --appendonly
+      - "yes"
+      - --appendfsync
+      - everysec
+
     environment:
       REDIS_ROOT_PASSWORD: ${REDIS_ROOT_PASSWORD:?Set REDIS_ROOT_PASSWORD in the production environment}
+
+    networks:
+      - system-os
+
     healthcheck:
       test: ["CMD-SHELL", "redis-cli --user root --pass \"$$REDIS_ROOT_PASSWORD\" ping | grep -qx PONG"]
       interval: 10s
@@ -16,23 +37,68 @@ services:
 
   mysql-os:
     image: mysql:8.4.11@sha256:85b9bf2e29cf836ecb8c2a15a935d4ba0c606631dff1dd79531a11983c638f2a
+    container_name: mysql-os
+    hostname: mysql-os
+    restart: unless-stopped
+
     ports:
       - "127.0.0.1:3306:3306"
+
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD in the production environment}
+      TZ: ${TZ:-America/Sao_Paulo}
+
+    volumes:
+      - mysql-os-data:/var/lib/mysql
+
+    networks:
+      - system-os
+
     healthcheck:
       test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
       interval: 10s
       timeout: 5s
       retries: 18
+      start_period: 30s
 
   postgres-os:
+    image: postgres:18
+    container_name: postgres-os
+    hostname: postgres-os
+    restart: unless-stopped
+    shm_size: 128mb
+
     ports:
       - "127.0.0.1:5432:5432"
+
     environment:
+      POSTGRES_USER: postgres
+      POSTGRES_DB: postgres
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in the production environment}
+      TZ: ${TZ:-America/Sao_Paulo}
+
+    volumes:
+      - postgres-os-data:/var/lib/postgresql
+
+    networks:
+      - system-os
+
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
       interval: 10s
       timeout: 5s
       retries: 18
+      start_period: 30s
+
+volumes:
+  postgres-os-data:
+    name: postgres-os-data
+  redis-os-data:
+    name: redis-os-data
+  mysql-os-data:
+    name: mysql-os-data
+
+networks:
+  system-os:
+    name: system-os
+    external: true
