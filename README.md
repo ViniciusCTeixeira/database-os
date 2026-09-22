@@ -19,6 +19,23 @@ dev/deploy.sh
 
 O script valida o Compose, sobe os serviços e espera os health checks. MySQL, Redis e PostgreSQL são publicados apenas no loopback local, respectivamente em `127.0.0.1:3306`, `127.0.0.1:6379` e `127.0.0.1:5432`.
 
+## Gerenciar os bancos
+
+Use o `database-os.sh` na raiz do projeto. Ele identifica o ambiente pelo arquivo presente no host: `dev/.env` para desenvolvimento ou `production/.env` para produção. Os dois arquivos não devem coexistir no mesmo host.
+
+```sh
+# Todos os serviços do ambiente atual
+./database-os.sh pause
+./database-os.sh start
+
+# Um serviço específico
+./database-os.sh stop mysql
+./database-os.sh start mysql
+./database-os.sh pause redis
+```
+
+As ações disponíveis são `start`, `stop` e `pause`; os alvos são `all` (padrão), `mysql`, `redis` e `postgres`. `start` retoma automaticamente um serviço pausado. Caso o container ainda não exista, o script não cria nada e orienta a executar o `deploy.sh` correspondente.
+
 ## Produção
 
 No servidor, execute:
