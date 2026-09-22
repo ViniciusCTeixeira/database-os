@@ -1,27 +1,37 @@
 # databases-os
 
-Serviços de dados compartilhados pelo servidor. O Compose de desenvolvimento continua em `compose.yml`; produção aplica `compose.production.yml` como override dele.
+Serviços de dados compartilhados pelo servidor, separados por ambiente. Desenvolvimento e produção têm manifestos Compose, scripts de deploy e arquivos de ambiente próprios.
+
+## Desenvolvimento local
+
+Os arquivos de desenvolvimento ficam em `dev/`. Para ajustar as credenciais locais, copie o exemplo antes de subir a pilha:
+
+```sh
+cp dev/.env.example dev/.env
+dev/deploy.sh
+```
+
+O script valida o Compose, sobe os serviços e espera os health checks. MySQL, Redis e PostgreSQL são publicados apenas no loopback local, respectivamente em `127.0.0.1:3306`, `127.0.0.1:6379` e `127.0.0.1:5432`.
 
 ## Produção
 
-Crie a rede compartilhada uma vez no host:
+No servidor, execute:
 
 ```sh
-docker network create system-os
+production/deploy.sh
 ```
 
-Execute `scripts/deploy.sh`. Em instalação nova, ele gera três senhas independentes, cria `docker/.env` com permissão `0600`, valida o Compose e sobe os serviços. Esse arquivo é exclusivo do Docker Compose e fica fora do Git.
+Na primeira instalação, o script cria `production/.env` com três senhas independentes, permissão `0600`, valida a configuração e sobe os serviços. Guarde uma cópia protegida desse arquivo: ele fica fora do Git.
 
-Se os volumes MySQL ou PostgreSQL já existirem, o script exige `docker/.env` com `MYSQL_ROOT_PASSWORD`, `REDIS_ROOT_PASSWORD` e `POSTGRES_PASSWORD` preenchidos com as senhas atuais; ele não gera nem substitui credenciais.
-
-Suba a pilha com:
+Em uma instalação existente, mova o arquivo de credenciais antes do primeiro deploy após esta reorganização:
 
 ```sh
-scripts/deploy.sh
+mv docker/.env production/.env
+production/deploy.sh
 ```
 
-Os bancos entram na rede Docker externa `system-os` como `mysql-os`, `redis-os` e `postgres-os`. No host, somente os listeners de loopback são publicados: `127.0.0.1:3306`, `127.0.0.1:6379` e `127.0.0.1:5432`.
+Se os volumes `mysql-os-data` ou `postgres-os-data` já existirem e `production/.env` estiver ausente, o deploy para sem gerar novas credenciais. Recupere as senhas atuais e preencha o arquivo manualmente; variáveis de inicialização não alteram senhas já gravadas nos volumes.
 
-MySQL usa `root`; Redis desativa o usuário `default` e habilita somente a ACL administrativa `root`; PostgreSQL usa `postgres`. Essa escolha foi solicitada para centralização operacional e concede privilégios totais a qualquer aplicação que receba essas senhas.
+Os bancos entram na rede Docker externa `system-os` como `mysql-os`, `redis-os` e `postgres-os`. No host, os listeners continuam restritos a loopback: `127.0.0.1:3306`, `127.0.0.1:6379` e `127.0.0.1:5432`.
 
-Em volumes MySQL ou PostgreSQL já existentes, os valores em `docker/.env` devem ser as senhas que já valem no volume. As variáveis de inicialização só se aplicam a uma base vazia; altere a senha no banco antes do corte se for preciso alinhá-la ao `.env`.
+MySQL usa `root`; Redis desativa o usuário `default` e habilita somente a ACL administrativa `root`; PostgreSQL usa `postgres`. Qualquer aplicação que receber essas senhas terá privilégios totais nos respectivos serviços.

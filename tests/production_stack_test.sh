@@ -62,3 +62,7 @@ if PATH="$temporary_directory/bin:$PATH" "$temporary_directory/production/deploy
     exit 1
 fi
 grep -Fq "O volume 'mysql-os-data' já existe" "$temporary_directory/output"
+
+grep -Fq 'dev/deploy.sh' "$project_root/README.md"
+grep -Fq 'production/deploy.sh' "$project_root/README.md"
+grep -Fq 'production/.env' "$project_root/README.md"
