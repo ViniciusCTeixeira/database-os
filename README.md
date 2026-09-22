@@ -21,7 +21,7 @@ O script valida o Compose, sobe os serviços e espera os health checks. MySQL, R
 
 ## Gerenciar os bancos
 
-Use o `database-os.sh` na raiz do projeto. Ele identifica o ambiente pelo arquivo presente no host: `dev/.env` para desenvolvimento ou `production/.env` para produção. Os dois arquivos não devem coexistir no mesmo host.
+Use o `database-os.sh` na raiz do projeto. Ele gerencia diretamente os containers nomeados `mysql-os`, `redis-os` e `postgres-os`; por isso, não depende de arquivo `.env` nem dos arquivos Compose.
 
 ```sh
 # Todos os serviços do ambiente atual
@@ -34,7 +34,7 @@ Use o `database-os.sh` na raiz do projeto. Ele identifica o ambiente pelo arquiv
 ./database-os.sh pause redis
 ```
 
-As ações disponíveis são `start`, `stop` e `pause`; os alvos são `all` (padrão), `mysql`, `redis` e `postgres`. `start` retoma automaticamente um serviço pausado. Caso o container ainda não exista, o script não cria nada e orienta a executar o `deploy.sh` correspondente.
+As ações disponíveis são `start`, `stop` e `pause`; os alvos são `all` (padrão), `mysql`, `redis` e `postgres`. `start` retoma automaticamente um serviço pausado. Caso o container ainda não exista, o script não cria nada e orienta a executar o deploy do ambiente.
 
 ## Produção
 
