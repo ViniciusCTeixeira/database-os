@@ -1,0 +1,38 @@
+services:
+  redis-os:
+    build:
+      context: .
+      dockerfile: docker/redis/Dockerfile
+    image: databases-os-redis:7.4.11
+    ports:
+      - "127.0.0.1:6379:6379"
+    environment:
+      REDIS_ROOT_PASSWORD: ${REDIS_ROOT_PASSWORD:?Set REDIS_ROOT_PASSWORD in the production environment}
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli --user root --pass \"$$REDIS_ROOT_PASSWORD\" ping | grep -qx PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  mysql-os:
+    image: mysql:8.4.11@sha256:85b9bf2e29cf836ecb8c2a15a935d4ba0c606631dff1dd79531a11983c638f2a
+    ports:
+      - "127.0.0.1:3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD in the production environment}
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 18
+
+  postgres-os:
+    ports:
+      - "127.0.0.1:5432:5432"
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in the production environment}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 18

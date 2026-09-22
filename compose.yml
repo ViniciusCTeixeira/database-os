@@ -1,0 +1,98 @@
+name: databases-os
+
+services:
+  redis-os:
+    image: redis:7-alpine
+    container_name: redis-os
+    hostname: redis-os
+    restart: unless-stopped
+
+    ports:
+      - "127.0.0.1:6379:6379"
+
+    volumes:
+      - redis-os-data:/data
+
+    command:
+      - redis-server
+      - --appendonly
+      - "yes"
+      - --appendfsync
+      - everysec
+
+    networks:
+      - system-os
+
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  mysql-os:
+    image: mysql:8.4
+    container_name: mysql-os
+    hostname: mysql-os
+    restart: unless-stopped
+
+    ports:
+      - "127.0.0.1:3306:3306"
+
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-local-development-only}
+      TZ: ${TZ:-America/Sao_Paulo}
+
+    volumes:
+      - mysql-os-data:/var/lib/mysql
+
+    networks:
+      - system-os
+
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  postgres-os:
+    image: postgres:18
+    container_name: postgres-os
+    hostname: postgres-os
+    restart: unless-stopped
+    shm_size: 128mb
+
+    ports:
+      - "127.0.0.1:5432:5432"
+
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_DB: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-local-development-only}
+      TZ: ${TZ:-America/Sao_Paulo}
+
+    volumes:
+      - postgres-os-data:/var/lib/postgresql
+
+    networks:
+      - system-os
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h localhost -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+volumes:
+  postgres-os-data:
+    name: postgres-os-data
+  redis-os-data:
+    name: redis-os-data
+  mysql-os-data:
+    name: mysql-os-data
+
+networks:
+  system-os:
+    name: system-os
+    external: true
