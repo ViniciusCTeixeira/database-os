@@ -58,3 +58,9 @@ Se os volumes `mysql-os-data` ou `postgres-os-data` já existirem e `production/
 Os bancos entram na rede Docker externa `system-os` como `mysql-os`, `redis-os` e `postgres-os`. No host, os listeners continuam restritos a loopback: `127.0.0.1:3306`, `127.0.0.1:6379` e `127.0.0.1:5432`.
 
 MySQL usa `root`; Redis desativa o usuário `default` e habilita somente a ACL administrativa `root`; PostgreSQL usa `postgres`. Qualquer aplicação que receber essas senhas terá privilégios totais nos respectivos serviços.
+
+## Licença
+
+Este projeto é disponibilizado sob a licença MIT. Consulte o arquivo [LICENSE](LICENSE).
+
+Copyright (c) 2026 Vinicius da Conceição Teixeira. As dependências e imagens de terceiros permanecem sob suas respectivas licenças.
